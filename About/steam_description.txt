@@ -1,3 +1,6 @@
+[b]Discord Community:[/b] [url=https://discord.gg/eVBebZ2N9s]https://discord.gg/eVBebZ2N9s[/url]
+[b]Version:[/b] v0.5.1 (Target: RimWorld 1.6)
+
 [h1]RimSynapse - NVIDIA Tool[/h1]
 [b]Real-time VRAM monitoring and LLM performance metrics rendered directly in-game.[/b]
 
@@ -32,6 +35,6 @@ A crucial diagnostic tool for developers and power-users running local LLMs alon
 
 ---
 
-[h2]Open Source & Support[/h2]
+[h2]Open Source and Support[/h2]
 GitHub: [url]https://github.com/RimSynapse/NVIDIA-Tool[/url]
 Buy me a coffee: [url]https://buymeacoffee.com/archdukejim[/url]
