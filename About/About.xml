@@ -21,7 +21,7 @@
     </loadAfter>
     <description>
 Discord Community: https://discord.gg/eVBebZ2N9s
-Version: v0.5.1 (Target: RimWorld 1.6)
+Version: v0.5.2 (Target: RimWorld 1.6)
 
 RimSynapse - NVIDIA Tool
 Official Wiki and Documentation: https://github.com/RimSynapse/NVIDIA-Tool/wiki
@@ -47,6 +47,9 @@ This developer and power-user tool provides a comprehensive overview of your loc
   Request History Length:         100    (Number of recent LLM requests to keep in the metrics log)
 
 --- Changelog ---
+v0.5.2
+- Maintenance release, aligned with Core and Psychology fixes
+- Licence changed to PolyForm Noncommercial 1.0.0
 v0.4.0
 - Updated to support RimSynapse Core v0.4.0 (Multi-provider routing and Image generation).
 
