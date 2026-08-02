@@ -1,5 +1,5 @@
 [b]Discord Community:[/b] [url=https://discord.gg/eVBebZ2N9s]https://discord.gg/eVBebZ2N9s[/url]
-[b]Version:[/b] v0.7.0 (Target: RimWorld 1.6)
+[b]Version:[/b] v0.7.1 (Target: RimWorld 1.6)
 
 [h1]RimSynapse - NVIDIA Tool[/h1]
 [b][url=https://github.com/RimSynapse/NVIDIA-Tool/wiki]Official Wiki and Documentation[/url][/b]
@@ -36,13 +36,20 @@ This developer and power-user tool provides a comprehensive overview of your loc
 
 [h2]Roadmap[/h2]
 [list]
-[*] [b]0.8 - Demographics, News and Narrative Voice:[/b] Sharper VRAM and offload accounting as local-inference features (news voice, text-to-speech) raise model demands, and a quieter startup.
+[*] [b]0.8 - Demographics, News and Narrative Voice:[/b] GPU budgeting keeps pace as local-inference features (news voice, text-to-speech) raise model demands.
 [*] [b]0.9 - Factions and Living Societies:[/b] Continued support as concurrent faction and world reasoning increases local-model load.
 [*] [b]0.10 - Cross-Mod Capability Passes:[/b] A pass over GPU budgeting with every module running at once.
 [/list]
 These ship when they are ready - no dates.
 
 ---
+
+[h2]Changelog (v0.7.1) - VRAM Accuracy and Quieter Startup[/h2]
+[list]
+[*] Fixed - the VRAM status popup now reconciles. It counts only GPU-resident memory: the LM Studio portion offloaded to system RAM is labelled as RAM rather than VRAM, and a model running on a remote LM Studio host no longer shows as local VRAM. Estimated lines are marked with a tilde.
+[*] Fixed - on machines without an NVIDIA driver, startup no longer writes a wall of NVML loader-failure lines to the log; it logs a single line noting that GPU VRAM advisories are unavailable.
+[*] Requires Core v0.7.0; saves and settings carry over unchanged.
+[/list]
 
 [h2]Changelog (v0.7.0) - Regions and Territories Compatibility[/h2]
 [list]

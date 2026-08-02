@@ -21,6 +21,7 @@ namespace RimSynapse.NvidiaTool
         private static Thread _pollThread;
         private static volatile bool _shutdown;
         private static volatile bool _available;
+        private static bool _probed;
         private static readonly object _lock = new object();
         private static IntPtr _device = IntPtr.Zero;
 
@@ -50,7 +51,21 @@ namespace RimSynapse.NvidiaTool
         /// <summary>Start background polling.</summary>
         internal static void Start()
         {
-            if (_pollThread != null) return;
+            if (_pollThread != null || _probed) return;
+            _probed = true;
+
+            // Probe for NVML here, on the calling (main) thread, so the single
+            // explanatory line reliably reaches Player.log — background-thread Log
+            // calls are not dependably captured. If the library isn't present we
+            // never start the poll loop and never trigger Mono's DllImport("nvml")
+            // resolution sweep (~16 "Fallback handler could not load library" lines).
+            if (!NvmlLibraryResolves())
+            {
+                _available = false;
+                LastError = "nvml.dll not found — GPU VRAM advisories unavailable (expected on machines without an NVIDIA driver).";
+                RimSynapse.SynapseLogger.Message($"[RimSynapse NV] {LastError}");
+                return;
+            }
 
             _shutdown = false;
             _pollThread = new Thread(PollLoop)
@@ -102,8 +117,44 @@ namespace RimSynapse.NvidiaTool
         //  Initialization
         // ────────────────────────────────────────────────────────
 
+        // ── Quiet library probe (kernel32) ──
+        // Resolving DllImport("nvml") through Mono on a machine without NVML makes the
+        // runtime sweep every filename/path variant, emitting ~16 "Fallback handler
+        // could not load library" lines to Player.log before we can log anything of our
+        // own. We instead probe once with the Win32 loader — which stays silent on
+        // failure — and only ever call an nvml entry point when the library resolves.
+
+        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr LoadLibrary(string lpFileName);
+
+        [DllImport("kernel32", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool FreeLibrary(IntPtr hModule);
+
+        /// <summary>
+        /// Returns true if nvml.dll can be resolved by the Windows loader. Uses a plain
+        /// Win32 LoadLibrary probe so a missing library produces no loader-failure spam.
+        /// </summary>
+        private static bool NvmlLibraryResolves()
+        {
+            try
+            {
+                IntPtr h = LoadLibrary("nvml.dll");
+                if (h == IntPtr.Zero) return false;
+                FreeLibrary(h);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private static bool InitNvml()
         {
+            // Start() has already confirmed nvml.dll resolves (via the quiet Win32 probe)
+            // before this runs, so calling the DllImport("nvml") entry points here will
+            // not trigger Mono's fallback resolution sweep.
             try
             {
                 int result = Nvml.Init();

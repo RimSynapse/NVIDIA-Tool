@@ -2,6 +2,11 @@
 
 Full version history for RimSynapse - NVIDIA Tool. The mod page and Workshop description show only the latest release; every earlier version is recorded here.
 
+## v0.7.1 - VRAM Accuracy and Quieter Startup
+- Fixed - VRAM breakdown reconciles. The "VRAM Status" popup previously summed the full LM Studio estimate - including the portion the estimator assumes is offloaded to system RAM - and attributed models running on a remote LM Studio host to local VRAM, so the components did not add up to the reported total. The dialog now counts only GPU-resident memory: the offloaded LM Studio portion is labelled as system RAM rather than VRAM, and a remote host contributes zero local VRAM instead of a phantom amount. Estimated lines are marked with a tilde so measured and estimated figures are no longer conflated. (#15)
+- Fixed - Quieter startup. On a machine without a resolvable NVML library, the tool no longer emits roughly 16 "Fallback handler could not load library" lines to Player.log before it can log anything of its own. It now probes for the library once via the Windows loader and, when NVML is absent, logs a single line noting that GPU VRAM advisories are unavailable. VRAM advisories are unaffected where NVML is present. (#13)
+- Requires Core v0.7.0; saves and settings carry over unchanged.
+
 ## v0.7.0 - Regions and Territories Compatibility
 - Moves in step with RimSynapse Core v0.7.0.
 - Requires Core v0.7.0; saves and settings carry over unchanged.

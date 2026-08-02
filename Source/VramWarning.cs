@@ -99,22 +99,33 @@ namespace RimSynapse.NvidiaTool
             float totalGb = totalMb / 1024f;
             float usedGb = usedMb / 1024f;
             float systemGb = VramBreakdown.SystemMb / 1024f;
-            float lmsGb = VramBreakdown.LmStudioMb / 1024f;
+            // Only the GPU-resident LM Studio portion counts as local VRAM; the
+            // offloaded portion lives in system RAM and must not inflate this line.
+            float lmsGb = VramBreakdown.LmStudioVramMb / 1024f;
+            float lmsRamGb = VramBreakdown.LmStudioRamMb / 1024f;
             float rwGb = VramBreakdown.RimWorldMb / 1024f;
 
             string status = freeGb >= MinFreeGb
                 ? $"✓  You have {freeGb:F1} GB free — you're in good shape."
                 : $"⚠  You have {freeGb:F1} GB free — this is tight for late-game.";
 
+            // System / LM Studio / RimWorld are estimates (~); used/free/total are measured.
+            string breakdown =
+                $"  • System / Desktop:  ~{systemGb:F1} GB\n" +
+                $"  • LM Studio model:   ~{lmsGb:F1} GB\n";
+            if (lmsRamGb >= 0.05f)
+                breakdown += $"      (+~{lmsRamGb:F1} GB offloaded to system RAM, not on GPU)\n";
+            breakdown +=
+                $"  • RimWorld:          ~{rwGb:F1} GB\n" +
+                $"  • Free:              {freeGb:F1} GB\n";
+
             string msg =
                 "RimSynapse GPU — VRAM Status\n\n" +
                 $"GPU: {NvidiaSmiReader.GpuName}\n" +
                 $"VRAM: {usedGb:F1} / {totalGb:F1} GB used\n\n" +
-                $"  • System / Desktop:  {systemGb:F1} GB\n" +
-                $"  • LM Studio model:   {lmsGb:F1} GB\n" +
-                $"  • RimWorld:          {rwGb:F1} GB\n" +
-                $"  • Free:              {freeGb:F1} GB\n\n" +
+                breakdown + "\n" +
                 status + "\n\n" +
+                "Values marked ~ are estimates (RimWorld from texture memory, LM Studio from model size).\n" +
                 "Disable 'Always show VRAM status' in mod settings to only see warnings.";
 
             Find.WindowStack.Add(new Dialog_MessageBox(
@@ -139,8 +150,14 @@ namespace RimSynapse.NvidiaTool
             float totalGb = totalMb / 1024f;
             float usedGb = usedMb / 1024f;
             float systemGb = VramBreakdown.SystemMb / 1024f;
-            float lmsGb = VramBreakdown.LmStudioMb / 1024f;
+            // GPU-resident LM Studio portion only; offloaded portion is system RAM.
+            float lmsGb = VramBreakdown.LmStudioVramMb / 1024f;
+            float lmsRamGb = VramBreakdown.LmStudioRamMb / 1024f;
             float rwGb = VramBreakdown.RimWorldMb / 1024f;
+
+            string lmsOffloadLine = lmsRamGb >= 0.05f
+                ? $"      (+~{lmsRamGb:F1} GB offloaded to system RAM, not on GPU)\n"
+                : "";
 
             string msg =
                 "RimSynapse GPU — VRAM Warning\n\n" +
@@ -148,6 +165,7 @@ namespace RimSynapse.NvidiaTool
                 $"Before RimWorld even started, your system was already using {usedGb:F1} GB:\n\n" +
                 $"  • System / Desktop:  ~{systemGb:F1} GB\n" +
                 $"  • LM Studio model:   ~{lmsGb:F1} GB\n" +
+                lmsOffloadLine +
                 $"  • RimWorld:          ~{rwGb:F1} GB\n\n" +
                 $"With less than {MinFreeGb:F0} GB free, you may experience:\n" +
                 "  • Late-game slowdowns as colony grows\n" +
