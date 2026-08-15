@@ -1,5 +1,5 @@
 [b]Discord Community:[/b] [url=https://discord.gg/eVBebZ2N9s]https://discord.gg/eVBebZ2N9s[/url]
-[b]Version:[/b] v0.7.1 (Target: RimWorld 1.6)
+[b]Version:[/b] v0.8.0 (Target: RimWorld 1.6)
 
 [h1]RimSynapse - NVIDIA Tool[/h1]
 [b][url=https://github.com/RimSynapse/NVIDIA-Tool/wiki]Official Wiki and Documentation[/url][/b]
@@ -36,13 +36,19 @@ This developer and power-user tool provides a comprehensive overview of your loc
 
 [h2]Roadmap[/h2]
 [list]
-[*] [b]0.8 - Demographics, News and Narrative Voice:[/b] GPU budgeting keeps pace as local-inference features (news voice, text-to-speech) raise model demands.
 [*] [b]0.9 - Factions and Living Societies:[/b] Continued support as concurrent faction and world reasoning increases local-model load.
 [*] [b]0.10 - Cross-Mod Capability Passes:[/b] A pass over GPU budgeting with every module running at once.
 [/list]
 These ship when they are ready - no dates.
 
 ---
+
+[h2]Changelog (v0.8.0) - Accurate VRAM and Compatibility Manifest[/h2]
+[list]
+[*] Fixed - Reconciled the VRAM breakdown numbers so the reported totals add up correctly.
+[*] Changed - Silenced the noisy NVML loader spam in the log on systems where the NVIDIA management library isn't present.
+[*] NEW - Added the cross-mod compatibility manifest so RimSynapse Core can verify version compatibility at load.
+[/list]
 
 [h2]Changelog (v0.7.1) - VRAM Accuracy and Quieter Startup[/h2]
 [list]

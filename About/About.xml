@@ -4,7 +4,7 @@
     <author>RimSynapse Team</author>
     <packageId>RimSynapse.NVIDIATool</packageId>
     <url>https://github.com/RimSynapse/NVIDIA-Tool</url>
-    <modVersion>0.7.1</modVersion>
+    <modVersion>0.8.0</modVersion>
     <supportedVersions>
         <li>1.6</li>
     </supportedVersions>
@@ -21,7 +21,7 @@
     </loadAfter>
     <description>
 Discord Community: https://discord.gg/eVBebZ2N9s
-Version: v0.7.1 (Target: RimWorld 1.6)
+Version: v0.8.0 (Target: RimWorld 1.6)
 
 RimSynapse - NVIDIA Tool
 Official Wiki and Documentation: https://github.com/RimSynapse/NVIDIA-Tool/wiki
@@ -47,10 +47,14 @@ This developer and power-user tool provides a comprehensive overview of your loc
   Request History Length:         100    (Number of recent LLM requests to keep in the metrics log)
 
 --- Roadmap ---
-0.8 - Demographics, News and Narrative Voice: GPU budgeting keeps pace as local-inference features (news voice, text-to-speech) raise model demands.
 0.9 - Factions and Living Societies: Continued support as concurrent faction and world reasoning increases local-model load.
 0.10 - Cross-Mod Capability Passes: A pass over GPU budgeting with every module running at once.
 These ship when they are ready - no dates.
+
+--- Changelog (v0.8.0) - Accurate VRAM and Compatibility Manifest ---
+- Fixed - Reconciled the VRAM breakdown numbers so the reported totals add up correctly.
+- Changed - Silenced the noisy NVML loader spam in the log on systems where the NVIDIA management library isn't present.
+- NEW - Added the cross-mod compatibility manifest so RimSynapse Core can verify version compatibility at load.
 
 --- Changelog (v0.7.1) - VRAM Accuracy and Quieter Startup ---
 - Fixed - the VRAM status popup now reconciles. It counts only GPU-resident memory: the LM Studio portion offloaded to system RAM is labelled as RAM rather than VRAM, and a model running on a remote LM Studio host no longer shows as local VRAM. Estimated lines are marked with a tilde.
