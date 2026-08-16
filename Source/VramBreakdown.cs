@@ -20,16 +20,22 @@ namespace RimSynapse.NvidiaTool
         private static float _lmStudioVramMb;
         private static float _lmStudioRamMb;
         private static float _systemMb;
+        private static bool _lmStudioIsRemote;
         private static DateTime _lastUpdate = DateTime.MinValue;
         private const float UpdateIntervalSec = 3f;
 
         // ── Public accessors ──
 
         internal static float RimWorldMb => _rimworldMb;
+        /// <summary>Full LM Studio estimate (VRAM-resident + any RAM-offloaded portion).</summary>
         internal static float LmStudioMb => _lmStudioMb;
+        /// <summary>LM Studio portion actually resident on this GPU. Zero for a remote host.</summary>
         internal static float LmStudioVramMb => _lmStudioVramMb;
+        /// <summary>LM Studio portion estimated to be offloaded to system RAM (not on the GPU).</summary>
         internal static float LmStudioRamMb => _lmStudioRamMb;
         internal static float SystemMb => _systemMb;
+        /// <summary>True when the configured LM Studio endpoint is a remote host, so none of its VRAM is on this GPU.</summary>
+        internal static bool LmStudioIsRemote => _lmStudioIsRemote;
 
         /// <summary>
         /// Refresh the breakdown. Call from the overlay's OnGUI (throttled internally).
@@ -46,8 +52,12 @@ namespace RimSynapse.NvidiaTool
             // 1. RimWorld — query Unity's own GPU memory tracking
             _rimworldMb = GetRimWorldVramMb();
 
-            // 2. LM Studio — estimate from loaded model parameters
-            _lmStudioMb = EstimateLmStudioVramMb();
+            // 2. LM Studio — estimate from loaded model parameters.
+            //    Only counts toward LOCAL VRAM when the endpoint is on this machine:
+            //    a remote LM Studio host runs on a different GPU, so attributing its
+            //    estimate here would be phantom VRAM and would distort the System line too.
+            _lmStudioIsRemote = IsLmStudioRemote();
+            _lmStudioMb = _lmStudioIsRemote ? 0f : EstimateLmStudioVramMb();
 
             // 3. Split LM Studio into VRAM vs offloaded RAM based on what's physically possible
             float maxAvailableForLms = totalUsedMb - _rimworldMb;
@@ -138,6 +148,23 @@ namespace RimSynapse.NvidiaTool
             catch
             {
                 return 0f;
+            }
+        }
+
+        /// <summary>
+        /// True when RimSynapse Core is configured to talk to a remote LM Studio host.
+        /// In that case the model runs on another machine's GPU, so none of its VRAM
+        /// is resident on this GPU and it must not be attributed to local VRAM.
+        /// </summary>
+        private static bool IsLmStudioRemote()
+        {
+            try
+            {
+                return RimSynapseMod.Instance?.Settings?.IsRemoteUrl ?? false;
+            }
+            catch
+            {
+                return false;
             }
         }
 
