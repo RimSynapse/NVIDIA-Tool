@@ -187,6 +187,12 @@ namespace RimSynapse.NvidiaTool
                     VramBreakdown.RimWorldMb, totalUsedMb, NvidiaSmiReader.TotalVramMb);
                 DrawProcessRow(x, ref y, contentWidth, "LM Studio",
                     VramBreakdown.LmStudioVramMb, totalUsedMb, NvidiaSmiReader.TotalVramMb, VramBreakdown.LmStudioRamMb);
+
+                // In-process consumers registered via Core's GpuStats channel (Core #104) — e.g.
+                // Local TTS's Kokoro model loaded into VRAM inside RimWorld's own process.
+                foreach (var consumer in VramBreakdown.Consumers)
+                    DrawProcessRow(x, ref y, contentWidth, consumer.label,
+                        consumer.vramMb, totalUsedMb, NvidiaSmiReader.TotalVramMb);
             }
 
             // ── Advanced section (shown in Advanced + Developer) ──

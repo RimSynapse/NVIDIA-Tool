@@ -93,6 +93,18 @@ namespace RimSynapse.NvidiaTool
         /// Informational dialog — shown every load when "Always Notify" is checked.
         /// Non-alarming, just tells them their VRAM status.
         /// </summary>
+        /// <summary>
+        /// One "  • &lt;label&gt;:  ~X.X GB" line per resident in-process VRAM consumer registered via
+        /// Core's GpuStats channel (Core #104) — e.g. Local TTS's Kokoro model. Empty when none.
+        /// </summary>
+        private static string FormatConsumerLines()
+        {
+            string lines = "";
+            foreach (var c in VramBreakdown.Consumers)
+                lines += $"  • {c.label}:  ~{c.vramMb / 1024f:F1} GB\n";
+            return lines;
+        }
+
         private static void ShowInfoDialog(float freeGb, float totalMb, float usedMb)
         {
             VramBreakdown.Refresh();
@@ -115,6 +127,7 @@ namespace RimSynapse.NvidiaTool
                 $"  • LM Studio model:   ~{lmsGb:F1} GB\n";
             if (lmsRamGb >= 0.05f)
                 breakdown += $"      (+~{lmsRamGb:F1} GB offloaded to system RAM, not on GPU)\n";
+            breakdown += FormatConsumerLines();
             breakdown +=
                 $"  • RimWorld:          ~{rwGb:F1} GB\n" +
                 $"  • Free:              {freeGb:F1} GB\n";
@@ -166,6 +179,7 @@ namespace RimSynapse.NvidiaTool
                 $"  • System / Desktop:  ~{systemGb:F1} GB\n" +
                 $"  • LM Studio model:   ~{lmsGb:F1} GB\n" +
                 lmsOffloadLine +
+                FormatConsumerLines() +
                 $"  • RimWorld:          ~{rwGb:F1} GB\n\n" +
                 $"With less than {MinFreeGb:F0} GB free, you may experience:\n" +
                 "  • Late-game slowdowns as colony grows\n" +
