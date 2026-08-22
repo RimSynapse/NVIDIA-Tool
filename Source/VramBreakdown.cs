@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -9,9 +10,12 @@ namespace RimSynapse.NvidiaTool
     /// NVML process enumeration (which requires elevated privileges).
     ///
     /// Sources:
-    ///   RimWorld  → Unity's own Texture.currentTextureMemory + overhead
-    ///   LM Studio → Model parameter count parsed from Core settings
-    ///   System    → Total VRAM used - RimWorld - LM Studio
+    ///   RimWorld     → Unity's own Texture.currentTextureMemory + overhead
+    ///   LM Studio    → Model parameter count parsed from Core settings
+    ///   In-process   → RimSynapse mods that loaded a model into VRAM inside RimWorld's own
+    ///                  process, registered via Core's GpuStats consumers channel (Core #104) —
+    ///                  e.g. Local TTS's Kokoro model. Invisible to NVML per-process enumeration.
+    ///   System       → Total VRAM used - RimWorld - LM Studio - in-process consumers
     /// </summary>
     internal static class VramBreakdown
     {
@@ -21,6 +25,8 @@ namespace RimSynapse.NvidiaTool
         private static float _lmStudioRamMb;
         private static float _systemMb;
         private static bool _lmStudioIsRemote;
+        private static List<GpuMemoryConsumer> _consumers = new List<GpuMemoryConsumer>();
+        private static float _consumersMb;
         private static DateTime _lastUpdate = DateTime.MinValue;
         private const float UpdateIntervalSec = 3f;
 
@@ -36,6 +42,10 @@ namespace RimSynapse.NvidiaTool
         internal static float SystemMb => _systemMb;
         /// <summary>True when the configured LM Studio endpoint is a remote host, so none of its VRAM is on this GPU.</summary>
         internal static bool LmStudioIsRemote => _lmStudioIsRemote;
+        /// <summary>Resident in-process VRAM consumers registered by other RimSynapse mods (Core #104).</summary>
+        internal static List<GpuMemoryConsumer> Consumers => _consumers;
+        /// <summary>Total VRAM (MB) attributed to in-process consumers.</summary>
+        internal static float ConsumersMb => _consumersMb;
 
         /// <summary>
         /// Refresh the breakdown. Call from the overlay's OnGUI (throttled internally).
@@ -79,8 +89,40 @@ namespace RimSynapse.NvidiaTool
                 _lmStudioRamMb = 0f;
             }
 
-            _systemMb = totalUsedMb - _rimworldMb - _lmStudioVramMb;
+            // 4. In-process consumers (Core #104): models loaded into VRAM inside RimWorld's own
+            //    process (e.g. Local TTS's Kokoro). NVML can't see them separately and Unity's
+            //    texture tracking misses them, so without this they inflate the System line.
+            _consumers = GatherConsumers();
+            _consumersMb = 0f;
+            foreach (var c in _consumers) _consumersMb += c.vramMb;
+
+            _systemMb = totalUsedMb - _rimworldMb - _lmStudioVramMb - _consumersMb;
             if (_systemMb < 0f) _systemMb = 0f;
+        }
+
+        /// <summary>
+        /// Read the resident in-process VRAM consumers from Core's GpuStats channel (Core #104).
+        /// Reads through Core (which the tool already depends on) — no coupling to the reporting
+        /// mods. Non-resident (CPU) consumers report 0 and are filtered out.
+        /// </summary>
+        private static List<GpuMemoryConsumer> GatherConsumers()
+        {
+            var result = new List<GpuMemoryConsumer>();
+            try
+            {
+                var snapshot = SynapseClient.Gpu?.ConsumersSnapshot();
+                if (snapshot != null)
+                {
+                    foreach (var c in snapshot)
+                        if (c != null && c.resident && c.vramMb > 0f)
+                            result.Add(c);
+                }
+            }
+            catch
+            {
+                // Older Core without the consumers channel — nothing to surface.
+            }
+            return result;
         }
 
         // ────────────────────────────────────────────────────────
