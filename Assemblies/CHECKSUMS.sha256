@@ -1,0 +1,5 @@
+# RimSynapse NVIDIA-Tool — shipped assembly manifest
+# version: 0.8.0
+# commit:  f136a91
+# format:  sha256sum — verify with 'verify-binaries.ps1' or 'sha256sum -c'
+c25a6cc8ecb4c704fe2c6695c796fe69b305e18a1c58c4bf2e2eae671d8856a3  RimSynapseNvidiaTool.dll
